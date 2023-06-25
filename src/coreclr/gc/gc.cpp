@@ -16181,6 +16181,10 @@ size_t gc_heap::limit_from_size (size_t size, uint32_t flags, size_t physical_li
     size_t desired_size_to_allocate  = max (padded_size, min_size_to_allocate);
     size_t new_physical_limit = min (physical_limit, desired_size_to_allocate);
 
+    size_t new_limit = new_allocation_limit (padded_size,
+                                             new_physical_limit,
+                                             gen_number);
+
 #ifdef FEATURE_EVENT_TRACE
     // If the AllocationTick threshold will be reached, check if the next one
     // will be within the currently calculated limit.
@@ -16204,10 +16208,6 @@ size_t gc_heap::limit_from_size (size_t size, uint32_t flags, size_t physical_li
         }
     }
 #endif
-
-    size_t new_limit = new_allocation_limit (padded_size,
-                                             new_physical_limit,
-                                             gen_number);
     assert (new_limit >= (size + Align (min_obj_size, align_const)));
     dprintf (3, ("h%d requested to allocate %zd bytes, actual size is %zd, phy limit: %zd",
         heap_number, size, new_limit, physical_limit));
@@ -18044,7 +18044,7 @@ void gc_heap::trigger_gc_for_alloc (int gen_number, gc_reason gr,
 }
 
 inline
-size_t gc_heap::compute_alloc_threshold ()
+size_t gc_heap::compute_alloc_threshold (int gen_number)
 {
     size_t threshold = etw_allocation_tick_mean;
 
@@ -18071,6 +18071,8 @@ size_t gc_heap::compute_alloc_threshold ()
         // nothing to do for fixed mode: threshold is defined as 100 KB by default
     }
 #endif
+
+    threshold += Align (min_obj_size, get_alignment_constant (gen_number <= max_generation));
 
     return threshold;
 }
@@ -18111,7 +18113,7 @@ bool gc_heap::update_alloc_info (int gen_number, size_t allocated_size, size_t* 
         etw_allocation_running_amount[oh_index] = 0;
 
         etw_allocation_running_threshold[oh_index] = etw_allocation_next_threshold[oh_index];
-        etw_allocation_next_threshold[oh_index] = compute_alloc_threshold();
+        etw_allocation_next_threshold[oh_index] = compute_alloc_threshold(gen_number);
     }
 
     return exceeded_p;

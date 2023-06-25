@@ -2970,7 +2970,7 @@ private:
     PER_HEAP_METHOD size_t get_alloc_current_threshold (int gen_number);
     PER_HEAP_METHOD size_t get_alloc_next_threshold (int gen_number);
     PER_HEAP_METHOD bool is_alloc_beyond_threshold (int gen_number, size_t size);
-    PER_HEAP_METHOD size_t compute_alloc_threshold ();
+    PER_HEAP_METHOD size_t compute_alloc_threshold (int gen_number);
     PER_HEAP_METHOD bool update_alloc_info (int gen_number,
                             size_t allocated_size,
                             size_t* etw_allocation_amount);

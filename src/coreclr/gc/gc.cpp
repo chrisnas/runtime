@@ -44127,7 +44127,7 @@ size_t gc_heap::decommit_region (heap_segment* region, int bucket, int h_number)
     {
 #ifdef MULTIPLE_HEAPS
         // In return_free_region, we set heap_segment_heap (region) to nullptr so we cannot use it here.
-        // but since all heaps share the same mark array we simply pick the 0th heap to use. 
+        // but since all heaps share the same mark array we simply pick the 0th heap to use. 
         gc_heap* hp = g_heaps [0];
 #else
         gc_heap* hp = pGenGCHeap;
@@ -49370,7 +49370,6 @@ bool GCHeap::StressHeap(gc_alloc_context * context)
     }                                                                                       \
 } while (false)
 
-#ifdef FEATURE_64BIT_ALIGNMENT
 // Allocate small object with an alignment requirement of 8-bytes.
 Object* AllocAlign8(alloc_context* acontext, gc_heap* hp, size_t size, uint32_t flags)
 {
@@ -49436,7 +49435,6 @@ Object* AllocAlign8(alloc_context* acontext, gc_heap* hp, size_t size, uint32_t 
 
     return newAlloc;
 }
-#endif // FEATURE_64BIT_ALIGNMENT
 
 Object*
 GCHeap::Alloc(gc_alloc_context* context, size_t size, uint32_t flags REQD_ALIGN_DCL)
@@ -49497,15 +49495,11 @@ GCHeap::Alloc(gc_alloc_context* context, size_t size, uint32_t flags REQD_ALIGN_
     }
     else
     {
-#ifdef FEATURE_64BIT_ALIGNMENT
         if (flags & GC_ALLOC_ALIGN8)
         {
             newAlloc = AllocAlign8 (acontext, hp, size, flags);
         }
         else
-#else
-        assert ((flags & GC_ALLOC_ALIGN8) == 0);
-#endif
         {
             newAlloc = (Object*) hp->allocate (size + ComputeMaxStructAlignPad(requiredAlignment), acontext, flags);
         }
